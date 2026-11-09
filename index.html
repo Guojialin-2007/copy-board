@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>跟单看板</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--mute:#6b6a64;--line:#e4e2db;--pos:#1f7a4d;--neg:#b3261e}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+header{padding:14px 16px;background:var(--card);border-bottom:1px solid var(--line)}h1{font-size:17px;margin:0 0 4px}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;background:#eee;color:var(--mute)}
+.on{background:#e3f3ea;color:var(--pos)}.live{background:var(--neg);color:#fff}.off{background:#fbe9e7;color:var(--neg)}
+main{max-width:900px;margin:0 auto;padding:12px;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+h2{font-size:14px;margin:0 0 8px}.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:700px){.kpis{grid-template-columns:repeat(3,1fr)}}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:8px 10px}.l{font-size:12px;color:var(--mute)}
+.v{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}.s{font-size:12px;color:var(--mute)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.note{font-size:12px;color:var(--mute)}
+.item{border-bottom:1px solid var(--line);padding:7px 0;font-size:13px}.item:last-child{border:0}
+.tag{font-size:11px;padding:1px 6px;border-radius:4px;background:#eee;margin-right:4px}
+.BUY{background:#e3f3ea;color:var(--pos)}.SELL{background:#fdf0e3;color:#9a5b13}.SETTLE{background:#e8eef9;color:#28508f}.SKIP{color:var(--mute)}
+</style></head><body>
+<header><h1>跟单看板</h1><span id="b" class="badge">读取中…</span> <span id="u" class="note"></span></header>
+<main><section class="card"><div class="kpis" id="k"></div><p id="e" class="neg" style="font-size:13px"></p></section>
+<section class="card"><h2>当前持仓</h2><div id="p"></div></section>
+<section class="card"><h2>最近记录</h2><div id="f"></div></section>
+<p class="note">电脑上的跟单程序每隔一两分钟更新一次，手机上最多晚约 5 分钟。页面每 30 秒自动刷新。</p></main>
+<script>
+const RAW="https://raw.githubusercontent.com/Guojialin-2007/copy-board/data/status.json";const $=i=>document.getElementById(i);
+const money=v=>v==null?"–":(v<0?"-$":"$")+Math.abs(v).toFixed(2);const sg=v=>v>0?"pos":v<0?"neg":"";
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const kp=(l,v,s,c)=>`<div class="kpi"><div class="l">${l}</div><div class="v ${c||""}">${v}</div><div class="s">${s||""}</div></div>`;
+async function go(){try{const e=await (await fetch(RAW+"?t="+Date.now(),{cache:"no-store"})).json();
+ const age=(Date.now()/1000-e.updated);const online=age<Math.max(300,(e.every||120)*3);
+ $("b").textContent=!online?"电脑程序离线":(e.running?(e.mode==="live"?"实盘运行中":"纸面运行中"):"已停止");
+ $("b").className="badge "+(!online?"off":e.running?(e.mode==="live"?"live":"on"):"");
+ $("u").textContent="更新于 "+new Date(e.updated*1000).toLocaleString()+(e.cfg?"　跟："+e.cfg.leader.slice(0,6)+"…"+e.cfg.leader.slice(-4):"");
+ const m=e.summary||{};
+ $("k").innerHTML=kp("已实现盈亏",money(m.pnl),m.roi==null?"":`每 $1 回报 ${m.roi}%`,sg(m.pnl))+kp("跟买",m.copied??"–",`已结算 ${m.closed??0}　赢 ${m.wins??0}`)+
+  kp("现金",money(m.cash),`起始 $${m.start??"–"}${e.claimable?"　待领取 "+money(e.claimable):""}`)+kp("在场",(m.open_n??0)+" 个",`成本 ${money(m.open_cost)}${m.stopped?"　已止损":""}`,m.stopped?"neg":"")+
+  kp("对方→我们成交",m.tot50==null?"–":m.tot50+" 秒",m.tot90==null?"":`90% 在 ${m.tot90} 秒内`)+kp("平均比对方贵",m.slip_c==null?"–":m.slip_c+"¢","每股");
+ const er=Object.values(e.err||{}).filter(Boolean);$("e").textContent=er.join(" | ");
+ $("p").innerHTML=(e.positions||[]).map(x=>`<div class="item">${esc(x.title)} <b>${esc(x.outcome)}</b><br><span class="note">${x.shares} 股 · 均价 ${x.avg} · 成本 ${money(x.cost)} · ${x.opened}</span></div>`).join("")||"<span class='note'>没有持仓</span>";
+ $("f").innerHTML=(e.feed||[]).filter(r=>r.action!=="SKIP"||1).slice(0,60).map(r=>`<div class="item"><span class="tag ${r.action}">${r.action}</span>${esc(r.title)} ${esc(r.outcome)} <span class="${sg(+r.pnl)}">${r.pnl?money(+r.pnl):""}</span><br><span class="note">${r.time} · 对方 ${r.leader_px}${r.my_px?" · 我 "+r.my_px:""}${r.total!==""&&r.total!=null?" · 晚 "+r.total+"s":""} · ${esc(r.note)}</span></div>`).join("")||"<span class='note'>还没有记录</span>";
+}catch(x){$("b").textContent="还没有数据";$("b").className="badge off"}}
+go();setInterval(go,30000);
+</script></body></html>
