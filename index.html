@@ -1,212 +1,248 @@
 <!DOCTYPE html>
 <html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>跟单看板</title>
+<title>跟单漏斗</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#EEF1F4;--panel:#FFFFFF;--ink:#13233A;--mute:#5B6B7F;--line:#D5DCE4;--him:#D9930D;--me:#2F6BFF;--pos:#0F8A6A;--neg:#C2412D;
+:root{--bg:#F3F5F8;--panel:#FFFFFF;--ink:#0D1B2E;--mute:#6B7A8F;--line:#DDE3EA;--him:#F2A007;--me:#2F5BFF;--win:#00A676;--loss:#E0432F;--gold:#E8B10C;
 --num:"Barlow Semi Condensed","PingFang SC","Microsoft YaHei",sans-serif;--cjk:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif}
-*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}[hidden]{display:none !important}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--cjk)}
-.num{font-family:var(--num);font-variant-numeric:tabular-nums}
-.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-.stripe{height:4px;background:var(--line)}.stripe.run{background:var(--me)}.stripe.live{background:var(--neg)}.stripe.off{background:var(--mute)}
-/* 顶部 */
-.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 0 6px}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--mute);flex:none}
-.dot.run{background:var(--me);box-shadow:0 0 0 4px rgba(47,107,255,.15)}.dot.live{background:var(--neg);box-shadow:0 0 0 4px rgba(194,65,45,.15)}
-@media (prefers-reduced-motion:no-preference){.dot.run,.dot.live{animation:pulse 2s ease-in-out infinite}}
-@keyframes pulse{50%{box-shadow:0 0 0 7px rgba(47,107,255,0)}}
-.state{font-weight:600}.who{color:var(--mute)}.who b{color:var(--him);font-weight:600;font-family:var(--num);letter-spacing:.02em}
+*{box-sizing:border-box}[hidden]{display:none !important}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--cjk)}
+.n{font-family:var(--num);font-variant-numeric:tabular-nums}
+.bar{display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.bar.live{box-shadow:inset 0 3px 0 var(--loss)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--mute)}
+.dot.run{background:var(--me)}.dot.live{background:var(--loss)}
+@media (prefers-reduced-motion:no-preference){.dot.run,.dot.live{animation:p 1.6s infinite}}
+@keyframes p{50%{opacity:.35}}
+.st{font-weight:700}.who{font-family:var(--num);color:var(--him);font-weight:600;letter-spacing:.02em}
 .sp{flex:1}
-.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
-.seg button{border:0;background:transparent;padding:7px 14px;font:inherit;color:var(--mute);cursor:pointer}
-.seg button.on{background:var(--ink);color:#fff}.seg button.on.live{background:var(--neg)}
-.btn{font:inherit;font-weight:600;padding:8px 18px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
-.btn.ghost{background:var(--panel);color:var(--ink);border-color:var(--line);font-weight:500}
-.btn.stop{background:var(--panel);color:var(--neg);border-color:var(--neg)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:6px 13px;font:inherit;color:var(--mute);cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff}.seg button.on.live{background:var(--loss)}
+.btn{font:600 14px var(--cjk);padding:7px 16px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+.btn.stop{background:#fff;color:var(--loss);border-color:var(--loss)}
+.btn.ghost{background:#fff;color:var(--ink);border-color:var(--line);font-weight:500}
 .btn:disabled{opacity:.35;cursor:default}
-button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--me);outline-offset:2px}
-/* 主句 */
-.hero{padding:18px 0 8px}
-.hero p{margin:0;font-size:22px;line-height:1.5;max-width:46em}
-.hero .n{font-family:var(--num);font-weight:700;font-size:40px;line-height:1;margin:0 2px;vertical-align:-2px}
-.pos{color:var(--pos)}.neg{color:var(--neg)}.m{color:var(--mute)}
-/* 事实条 */
-.facts{display:flex;flex-wrap:wrap;margin:14px 0 22px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.fact{padding:10px 22px 10px 0;margin-right:22px;border-right:1px solid var(--line)}
-.fact:last-child{border-right:0}
-.fact .v{font-family:var(--num);font-size:22px;font-weight:600;line-height:1.2}
-.fact .k{font-size:12px;color:var(--mute)}
-/* 设置抽屉 */
-details.set{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:6px 0 4px}
-details.set summary{cursor:pointer;padding:10px 14px;color:var(--mute);list-style:none}
-details.set summary::-webkit-details-marker{display:none}
-details.set[open] summary{border-bottom:1px solid var(--line)}
-.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:14px}
-.fields label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mute)}
-.fields input,.fields select{font:15px var(--cjk);padding:7px 9px;border:1px solid var(--line);border-radius:6px;color:var(--ink);background:#fff}
-.fields .wide{grid-column:1/-1}.addr{font-family:var(--num) !important;letter-spacing:.02em}
-.livebar{display:none;margin:8px 0 0;padding:10px 14px;border-left:3px solid var(--neg);background:#fff;color:var(--ink)}
-.livebar input{font:600 15px var(--num);width:90px;padding:5px 8px;border:1px solid var(--neg);border-radius:6px;margin-left:6px}
-.msg{color:var(--neg);font-size:13px;min-height:1em}
-/* 主体 */
-.main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:28px;align-items:start;padding-bottom:30px}
-@media(max-width:900px){.main{grid-template-columns:1fr}}
-h2{font-size:15px;margin:0 0 10px;font-weight:600}
-.legend{font-size:12px;color:var(--mute);font-weight:400;margin-left:8px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin:0 3px 0 8px}
-.tape{background:var(--panel);border:1px solid var(--line);border-radius:10px}
-.row{display:grid;grid-template-columns:62px minmax(0,1fr) 170px 150px 70px;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
-.row:last-child{border-bottom:0}
-.row .t{font-family:var(--num);color:var(--mute);font-size:14px}
-.row .mk{min-width:0}.row .mk div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row .mk small{color:var(--mute);font-size:12px}
-.px{font-family:var(--num);font-size:16px;white-space:nowrap}.px .h{color:var(--him)}.px .me{color:var(--me)}.px .d{font-size:13px;margin-left:4px}
-.gap{display:flex;align-items:center;gap:6px}.bar{flex:1;height:8px;background:#E6EBF0;border-radius:4px;overflow:hidden;display:flex}
-.bar i{display:block;height:100%}.bar .l{background:var(--him)}.bar .r{background:var(--me)}
-.gap span{font-family:var(--num);font-size:14px;width:38px;text-align:right}
-.pl{font-family:var(--num);font-size:16px;text-align:right;font-weight:600}
-.row.skip{color:var(--mute);grid-template-columns:62px minmax(0,1fr) auto;padding:6px 14px;font-size:13px}
-.row.settle .mk div{font-weight:600}@media(min-width:701px){.row.settle .mk{grid-column:2/5}}
-.empty{padding:28px 14px;color:var(--mute)}
-@media(max-width:700px){.row{grid-template-columns:52px minmax(0,1fr) 64px;grid-template-areas:"t mk pl" "t px px" "t gap gap";row-gap:4px}
-.row .t{grid-area:t;align-self:start}.row .mk{grid-area:mk}.row .px{grid-area:px}.row .gap{grid-area:gap}.row .pl{grid-area:pl}
-.hero p{font-size:18px}.hero .n{font-size:32px}.fact{padding-right:14px;margin-right:14px}.fact .v{font-size:19px}}
-.side section{margin-bottom:22px}
-.pos-item{padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}.pos-item:last-child{border:0}
-.pos-item small{display:block;color:var(--mute);font-family:var(--num);font-size:13px}
-.why{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px}
-.why .b{grid-column:1/-1;height:4px;background:#E6EBF0;border-radius:2px;margin-bottom:6px}.why .b i{display:block;height:100%;background:var(--mute);border-radius:2px}
-.srcs{font-size:13px;color:var(--mute);line-height:1.8}.srcs b{color:var(--ink);font-family:var(--num);font-weight:600}
-.err{color:var(--neg);font-size:13px;margin:0 0 12px}
-.claim{margin-top:6px}
-.foot{color:var(--mute);font-size:12px;padding:0 0 30px}
+.gear{width:36px;height:34px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:17px;line-height:1}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--me);outline-offset:2px}
+.wrap{max-width:1320px;margin:0 auto;padding:18px 22px 30px;display:grid;grid-template-columns:minmax(360px,5fr) 7fr;gap:22px}
+@media(max-width:960px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+/* 漏斗 */
+.fun{position:relative;min-height:640px;overflow:hidden}
+#fun{position:absolute;inset:0;width:100%;height:100%}
+.stages{position:absolute;inset:0;pointer-events:none}
+.stage{position:absolute;left:0;right:0;display:flex;justify-content:space-between;align-items:baseline;padding:0 26px;transform:translateY(-50%)}
+.stage .k{font-size:13px;color:var(--mute)}
+.stage .v{font-family:var(--num);font-weight:700;font-size:30px;line-height:1}
+.stage.s1 .v{color:var(--mute)}.stage.s2 .v{color:var(--him)}.stage.s3 .v{color:var(--me)}.stage.s5 .v{color:var(--win)}
+.rate{position:absolute;right:26px;font-family:var(--num);font-size:12px;color:var(--mute);transform:translateY(-50%)}
+/* 右侧 */
+.right{display:grid;gap:18px;align-content:start}
+.pnl{padding:20px 24px 12px;position:relative}
+.big{font-family:var(--num);font-weight:800;font-size:clamp(64px,9vw,112px);line-height:.95;letter-spacing:-.01em}
+.big.pos{color:var(--win)}.big.neg{color:var(--loss)}
+.sub{display:flex;gap:22px;flex-wrap:wrap;margin-top:8px;color:var(--mute)}
+.sub b{font-family:var(--num);font-size:20px;color:var(--ink);font-weight:700;margin-right:3px}
+#curve{display:block;width:100%;height:90px;margin-top:10px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:600px){.tiles{grid-template-columns:1fr 1fr}}
+.tile{padding:14px 18px}
+.tile .v{font-family:var(--num);font-weight:700;font-size:34px;line-height:1.05}
+.tile .k{color:var(--mute);font-size:12px;margin-top:2px}
+.meter{height:6px;background:#E8EDF3;border-radius:3px;margin-top:10px;overflow:hidden;display:flex}
+.meter i{display:block;height:100%}
+.tape{padding:6px 0}
+.row{display:grid;grid-template-columns:54px 58px 1fr 64px 76px;align-items:center;gap:10px;padding:9px 18px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.t{font-family:var(--num);color:var(--mute)}
+.pill{font:600 12px var(--num);padding:2px 8px;border-radius:99px;text-align:center;background:#EEF1F5;color:var(--mute)}
+.pill.up{background:rgba(0,166,118,.12);color:var(--win)}.pill.down{background:rgba(224,67,47,.12);color:var(--loss)}
+.px{font-family:var(--num);font-size:17px;white-space:nowrap}.px .h{color:var(--him)}.px .m{color:var(--me)}.px .d{font-size:13px;margin-left:6px}
+.sec{font-family:var(--num);color:var(--mute);text-align:right}
+.res{font-family:var(--num);font-weight:700;font-size:17px;text-align:right}
+.row.skip{color:var(--mute)}.row.skip .px{font-size:14px}
+.pos{color:var(--win)}.neg{color:var(--loss)}.mute{color:var(--mute)}
+.empty{padding:26px 18px;color:var(--mute)}
+.err{color:var(--loss);font-size:13px;margin:0}
+.ft{grid-column:1/-1;color:var(--mute);font-size:12px;display:flex;gap:18px;flex-wrap:wrap}
+/* 设置 */
+.sheet{position:fixed;inset:0;background:rgba(13,27,46,.35);display:flex;justify-content:flex-end;z-index:20}
+.sheet .in{width:min(460px,100%);height:100%;overflow:auto;background:#fff;padding:20px 22px}
+.sheet h3{margin:0 0 14px;font-size:16px}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mute)}
+.f .w{grid-column:1/-1}
+.f label{min-width:0}.f input,.f select{width:100%;min-width:0;font:14px var(--cjk);padding:7px 9px;border:1px solid var(--line);border-radius:6px;color:var(--ink);background:#fff}
+.livebar{margin-top:14px;padding:10px 12px;border-left:3px solid var(--loss);background:#FDF3F1;display:none}
+.livebar input{font:600 14px var(--num);width:90px;padding:4px 8px;border:1px solid var(--loss);border-radius:6px;margin-left:6px}
+.msg{color:var(--loss);font-size:13px;min-height:1em;margin:10px 0 0}
 </style></head><body>
-<div class="stripe" id="stripe"></div>
-<div class="wrap">
-<div class="top">
- <span class="dot" id="dot"></span><span class="state" id="state">读取中</span><span class="who" id="who"></span>
+<div class="bar" id="bar">
+ <span class="dot" id="dot"></span><span class="st" id="state">读取中</span><span class="who" id="who"></span>
  <span class="sp"></span>
- <div class="ctl" id="ctl" hidden>
-  <div class="seg" role="group" aria-label="模式"><button id="mPaper" class="on">纸面</button><button id="mLive">实盘</button></div>
-  <button class="btn" id="bStart">开始跟单</button><button class="btn stop" id="bStop">停止</button>
- </div>
+ <span id="ctl" hidden style="display:flex;gap:8px;align-items:center">
+  <span class="seg"><button id="mPaper" class="on">纸面</button><button id="mLive">实盘</button></span>
+  <button class="btn" id="bStart">开始</button><button class="btn stop" id="bStop">停止</button>
+  <button class="gear" id="bGear" aria-label="设置">⚙</button>
+ </span>
 </div>
-<div id="setWrap" hidden>
-<details class="set" id="set"><summary>设置：每注金额、止损、价格限制</summary>
- <div class="fields">
-  <label class="wide">跟哪个钱包<input id="leader" class="addr" autocomplete="off"></label>
-  <label>每注金额（美元）<input id="stake" type="number" step="0.5"></label>
-  <label>本金上限<input id="bank" type="number"></label>
-  <label>同时在场最多<input id="max_open" type="number"></label>
-  <label>一天亏到多少暂停<input id="day_stop" type="number"></label>
-  <label>总共亏到多少全停<input id="total_stop" type="number"></label>
-  <label>每股最多比他贵（美元）<input id="max_slip" type="number" step="0.005"></label>
-  <label>最低跟单价<input id="min_px" type="number" step="0.001"></label>
-  <label>最高跟单价<input id="max_px" type="number" step="0.01"></label>
-  <label>晚于几秒就不跟<input id="max_age" type="number"></label>
-  <label>几秒内算同一注<input id="merge_sec" type="number"></label>
-  <label>链上来源<select id="use_chain"><option value="1">开</option><option value="0">关</option></select></label>
-  <label>API 来源<select id="use_api"><option value="1">开</option><option value="0">关</option></select></label>
-  <label class="wide" style="flex-direction:row;align-items:center;gap:6px;color:var(--ink)"><input type="checkbox" id="reset">开始时清空上次的记录</label>
- </div>
-</details>
-<div class="livebar" id="livebar">实盘会用你的钱真实下单，价格超过“他的价＋最多贵多少”就不买。输入 LIVE 确认<input id="confirm" autocomplete="off"></div>
-<p class="msg" id="msg"></p>
+<div class="wrap">
+ <section class="card fun" aria-label="跟单漏斗">
+  <canvas id="fun"></canvas>
+  <div class="stages" id="stages"></div>
+ </section>
+ <section class="right">
+  <div class="card pnl">
+   <div class="big n" id="pnl">$0.00</div>
+   <div class="sub" id="sub"></div>
+   <canvas id="curve"></canvas>
+  </div>
+  <div class="tiles">
+   <div class="card tile"><div class="v" id="tSpd">–</div><div class="k">他成交到我成交</div><div class="meter"><i id="mSpd" style="background:var(--me);width:0"></i></div></div>
+   <div class="card tile"><div class="v" id="tGap">–</div><div class="k">每股比他贵</div></div>
+   <div class="card tile"><div class="v" id="tCash">–</div><div class="k" id="kCash">现金</div></div>
+  </div>
+  <p class="err" id="err"></p>
+  <div class="card tape" id="tape"><div class="empty">等他下第一单</div></div>
+ </section>
+ <div class="ft" id="ft"></div>
 </div>
-<div class="hero"><p id="hero">　</p></div>
-<div class="facts" id="facts"></div>
-<p class="err" id="err"></p>
-<div class="main">
- <div><h2>跟单记录<span class="legend"><i style="background:var(--him)"></i>他<i style="background:var(--me)"></i>我　时间条：他成交后多久发现＋我下单用时</span></h2>
-  <div class="tape" id="tape"><div class="empty">还没有记录。开始后，他每下一注，这里就会出现一行。</div></div></div>
- <div class="side">
-  <section><h2>持仓</h2><div id="pos"></div></section>
-  <section id="whyS"><h2>没跟的原因</h2><div class="why" id="why"></div></section>
-  <section><h2>数据来源</h2><div class="srcs" id="srcs"></div></section>
+<div class="sheet" id="sheet" hidden>
+ <div class="in">
+  <h3>设置</h3>
+  <div class="f">
+   <label class="w">跟哪个钱包<input id="leader" style="font-family:var(--num)"></label>
+   <label>每注 $<input id="stake" type="number" step="0.5"></label>
+   <label>本金上限 $<input id="bank" type="number"></label>
+   <label>同时在场最多 $<input id="max_open" type="number"></label>
+   <label>一天亏到暂停 $<input id="day_stop" type="number"></label>
+   <label>总亏到全停 $<input id="total_stop" type="number"></label>
+   <label>每股最多比他贵<input id="max_slip" type="number" step="0.005"></label>
+   <label>最低跟单价<input id="min_px" type="number" step="0.001"></label>
+   <label>最高跟单价<input id="max_px" type="number" step="0.01"></label>
+   <label>晚于几秒不跟<input id="max_age" type="number"></label>
+   <label>几秒内算同一注<input id="merge_sec" type="number"></label>
+   <label>极速模式<select id="fast"><option value="1">开</option><option value="0">关</option></select></label>
+   <label>极速最高价<input id="fast_cap" type="number" step="0.01"></label>
+   <label>实时数据 RTDS<select id="use_rtds"><option value="1">开</option><option value="0">关</option></select></label>
+   <label>链上来源<select id="use_chain"><option value="1">开</option><option value="0">关</option></select></label>
+   <label>API 来源<select id="use_api"><option value="1">开</option><option value="0">关</option></select></label>
+   <label>撮合推送触发<select id="clob_trigger"><option value="0">关</option><option value="1">开（会认错人）</option></select></label>
+   <label>mempool<select id="mempool"><option value="0">关</option><option value="1">开（耗节点额度）</option></select></label>
+   <label class="w" style="flex-direction:row;gap:6px;align-items:center;color:var(--ink)"><input type="checkbox" id="reset">开始时清空记录</label>
+  </div>
+  <div class="livebar" id="livebar">实盘会真实下单。输入 LIVE 确认<input id="confirm" autocomplete="off"></div>
+  <p class="msg" id="msg"></p>
+  <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" id="bApply">保存并重新开始</button><button class="btn ghost" id="bClose">关闭</button></div>
  </div>
-</div>
-<p class="foot" id="foot"></p>
 </div>
 <script>
 const LOCAL=false, SRC="https://raw.githubusercontent.com/Guojialin-2007/copy-board/data/status.json", EVERY=30000;
-const F=["leader","stake","bank","max_open","day_stop","total_stop","max_slip","min_px","max_px","max_age","merge_sec","use_chain","use_api"];
-const $=id=>document.getElementById(id);let inited=false,mode="paper";
+const F=["leader","stake","bank","max_open","day_stop","total_stop","max_slip","min_px","max_px","max_age","merge_sec","fast","fast_cap","use_rtds","use_chain","use_api","clob_trigger","mempool"];
+const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const usd=v=>v==null?"–":(v<0?"−$":"$")+Math.abs(v).toFixed(2);
-const sgnUsd=v=>v==null?"–":(v>0?"+":"")+usd(v);
-const cls=v=>v>0?"pos":v<0?"neg":"";
-const short=a=>a?a.slice(0,6)+"…"+a.slice(-4):"";
-const MON={January:1,February:2,March:3,April:4,May:5,June:6,July:7,August:8,September:9,October:10,November:11,December:12};
-function tt(t){t=String(t||"");const m=t.match(/^(Bitcoin|Ethereum|Solana|XRP) Up or Down - (\w+) (\d+), (.+?) ET$/);
- if(!m)return t;const c={Bitcoin:"BTC",Ethereum:"ETH",Solana:"SOL",XRP:"XRP"}[m[1]];return `${c} 涨跌　${MON[m[2]]||m[2]}/${m[3]} ${m[4].replace("-","–")} 美东`}
-function setMode(m){mode=m;$("mPaper").className=m==="paper"?"on":"";$("mLive").className=m==="live"?"on live":"";$("livebar").style.display=m==="live"?"block":"none";$("bStart").textContent=m==="live"?"开始实盘跟单":"开始跟单"}
+const usd=v=>(v<0?"−$":"$")+Math.abs(v).toFixed(2);
+const sgn=v=>v==null?"–":(v>0?"+":v<0?"−":"")+"$"+Math.abs(v).toFixed(2);
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let mode="paper",inited=false,DEF={},last=null;
+/* ---------- 漏斗 ---------- */
+const cv=$("fun"),cx=cv.getContext("2d");const STG=["全站成交","他的单","跟上","结算","赢"];
+let W=0,H=0,DPR=1,parts=[];
+function size(){const r=cv.getBoundingClientRect();DPR=devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0);placeStages()}
+const top0=()=>H*.06, bot0=()=>H*.95;
+const yAt=i=>top0()+(bot0()-top0())*(i/5);            // 第 i 层上边
+function half(y){const t=(y-top0())/(bot0()-top0());const w0=W*.46,w1=W*.07;return w0+(w1-w0)*Math.pow(Math.max(0,Math.min(1,t)),.72)}
+let VALS=[0,0,0,0,0];
+function placeStages(){$("stages").innerHTML=STG.map((s,i)=>`<div class="stage s${i+1}" style="top:${(yAt(i)+yAt(i+1))/2}px"><span class="k">${s}</span><span class="v" id="sv${i}">${Number(VALS[i]).toLocaleString()}</span></div>`).join("")}
+function drawFunnel(){
+ const cxm=W/2;
+ for(let i=0;i<5;i++){const y0=yAt(i),y1=yAt(i+1);
+  cx.beginPath();cx.moveTo(cxm-half(y0),y0);cx.lineTo(cxm+half(y0),y0);
+  for(let y=y0;y<=y1;y+=6)cx.lineTo(cxm+half(y),y);cx.lineTo(cxm+half(y1),y1);cx.lineTo(cxm-half(y1),y1);
+  for(let y=y1;y>=y0;y-=6)cx.lineTo(cxm-half(y),y);cx.closePath();
+  const a=[.05,.09,.13,.17,.24][i];cx.fillStyle=["rgba(107,122,143,"+a+")","rgba(242,160,7,"+a+")","rgba(47,91,255,"+a+")","rgba(13,27,46,"+a*.7+")","rgba(0,166,118,"+a+")"][i];cx.fill();
+  cx.strokeStyle="rgba(13,27,46,.10)";cx.lineWidth=1;cx.beginPath();cx.moveTo(cxm-half(y1),y1);cx.lineTo(cxm+half(y1),y1);cx.stroke();}
+ cx.strokeStyle="rgba(13,27,46,.25)";cx.lineWidth=1.5;cx.beginPath();for(let y=top0();y<=bot0();y+=4)cx.lineTo(cxm-half(y),y);cx.stroke();
+ cx.beginPath();for(let y=top0();y<=bot0();y+=4)cx.lineTo(cxm+half(y),y);cx.stroke();
+}
+function spawn(kind){const cxm=W/2;const y=top0()+2;const hw=half(y);
+ const P={x:cxm+(Math.random()*2-1)*hw*.92,y,vy:.8+Math.random()*1.4,k:kind,a:1,r:kind==="g"?1.8:kind==="h"?4:kind==="m"?4.5:6};
+ P.stop=kind==="g"?yAt(0)+(yAt(1)-yAt(0))*(.3+Math.random()*.9):kind==="h"?yAt(2)-4:kind==="m"?yAt(4)-6:bot0()-10;
+ if(kind==="w"){P.x=cxm;P.y=bot0()-14;P.vy=-2.4-Math.random()*1.4;P.vx=(Math.random()*2-1)*2.2;P.stop=-1e9}
+ parts.push(P)}
+function step(){cx.clearRect(0,0,W,H);drawFunnel();const cxm=W/2;
+ parts=parts.filter(p=>p.a>0.03);
+ for(const p of parts){
+  if(p.k==="w"){p.x+=p.vx;p.y+=p.vy;p.vy+=.07;p.a-=.008}
+  else if(p.y<p.stop){p.y+=p.vy;p.vy*=1.01;const hw=half(p.y)-p.r-2;p.x+=(cxm-p.x)*0.012;p.x=Math.max(cxm-hw,Math.min(cxm+hw,p.x))}
+  else p.a-=p.k==="g"?.04:.012;
+  cx.globalAlpha=p.a;cx.beginPath();cx.arc(p.x,p.y,p.r,0,7);
+  cx.fillStyle={g:"#8A97A8",h:"#F2A007",m:"#2F5BFF",w:"#E8B10C"}[p.k];cx.fill();
+  if(p.k!=="g"){cx.globalAlpha=p.a*.25;cx.beginPath();cx.arc(p.x,p.y,p.r*2.6,0,7);cx.fill()}}
+ cx.globalAlpha=1;if(!RM)requestAnimationFrame(step)}
+addEventListener("resize",()=>{size();if(RM)step()});
+/* ---------- 曲线 ---------- */
+function curve(pts){const c=$("curve"),g=c.getContext("2d");const w=c.clientWidth,h=c.clientHeight,d=devicePixelRatio||1;c.width=w*d;c.height=h*d;g.setTransform(d,0,0,d,0,0);g.clearRect(0,0,w,h);
+ if(!pts||pts.length<2){g.fillStyle="#6B7A8F";g.font="12px sans-serif";g.fillText("结算后这里出现资金曲线",0,h/2);return}
+ const all=[0,...pts],mn=Math.min(...all),mx=Math.max(...all),rg=(mx-mn)||1,X=i=>i/(all.length-1)*w,Y=v=>h-4-(v-mn)/rg*(h-8);
+ g.strokeStyle="rgba(13,27,46,.15)";g.setLineDash([3,4]);g.beginPath();g.moveTo(0,Y(0));g.lineTo(w,Y(0));g.stroke();g.setLineDash([]);
+ const endv=all[all.length-1],col=endv>=0?"#00A676":"#E0432F";
+ g.beginPath();all.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));g.strokeStyle=col;g.lineWidth=2;g.stroke();
+ g.lineTo(w,h);g.lineTo(0,h);g.closePath();const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,col+"33");gr.addColorStop(1,col+"00");g.fillStyle=gr;g.fill()}
+/* ---------- 渲染 ---------- */
+function tt(t){const m=String(t||"").match(/(\d+):(\d\d)([AP]M)-(\d+):(\d\d)([AP]M)/);return m?`${m[1]}:${m[2]}${m[3].toLowerCase()}`:""}
 function render(e){
  const online=LOCAL||(e.updated&&(Date.now()/1000-e.updated)<Math.max(300,(e.every||120)*3));
- const run=online&&e.running, live=run&&e.mode==="live";
- $("stripe").className="stripe "+(!online?"off":live?"live":run?"run":"");
- $("dot").className="dot "+(live?"live":run?"run":"");
- $("state").textContent=!online?"电脑上的跟单程序离线":live?"实盘跟单中":run?"纸面跟单中":"已停止";
- $("who").innerHTML=e.cfg?`跟着 <b>${esc(short(e.cfg.leader))}</b>`:"";
- if(LOCAL){
-  if(!inited){const c=e.cfg||DEF;F.forEach(k=>$(k).value=c[k]);setMode(e.running?e.mode:"paper");inited=true}
-  $("bStart").disabled=e.running;$("bStop").disabled=!e.running;$("mPaper").disabled=$("mLive").disabled=e.running;
- }
- const m=e.summary;
- if(m){
-  const settled=m.closed;
-  $("hero").innerHTML=`已跟<span class="n">${m.copied}</span>注，结算<span class="n">${settled}</span>注，赢<span class="n">${m.wins}</span>注，`+
-   (settled?`净${m.pnl>=0?"赚":"亏"}<span class="n ${cls(m.pnl)}">${usd(Math.abs(m.pnl))}</span>${m.roi!=null?`<span class="m">　每投 $1 回报 ${m.roi}%</span>`:""}`:`<span class="m">还没有结算的</span>`);
-  const fact=(v,k)=>`<div class="fact"><div class="v">${v}</div><div class="k">${k}</div></div>`;
-  $("facts").innerHTML=fact(m.tot50==null?"–":m.tot50+" 秒","他成交到我成交（中位数）")+fact(m.slip_c==null?"–":(m.slip_c>0?"+":"")+m.slip_c+"¢","每股平均比他多付")+
-   fact(`${m.open_n} 注 <span class="m" style="font-size:15px">${usd(m.open_cost)}</span>`,"在场")+fact(usd(m.cash),`现金（起始 $${m.start}）`)+
-   (e.claimable?fact(usd(e.claimable),"赢了待领取"):"")+(m.stopped?fact('<span class="neg">已暂停</span>',m.stopped==="day"?"今天亏到上限":"总亏损到上限"):"");
- }else{$("hero").innerHTML=LOCAL?"选好模式，点“开始跟单”。他每下一注，程序会在几秒内跟上。":"还没有数据。";$("facts").innerHTML=""}
- const er=[];for(const[k,v]of Object.entries(e.err||{}))if(v)er.push(({chain:"链上来源",api:"API 来源",exec:"下单"})[k]+"："+v);
- if(e.live_err)er.push(e.live_err);if(e.pub_err)er.push(e.pub_err);$("err").textContent=er.join("　");
- const feed=(e.feed||[]).filter(r=>r.action!=="MERGED");
- if(feed.length)$("tape").innerHTML=feed.slice(0,LOCAL?150:60).map(row).join("");
- const ps=e.positions||[];
- $("pos").innerHTML=ps.length?ps.map(p=>`<div class="pos-item">${esc(tt(p.title))||"等待市场名称"} <b>${esc(p.outcome)}</b><small>${p.shares} 股　均价 ${p.avg}　成本 ${usd(p.cost)}　${p.opened}</small></div>`).join("")
-  +(LOCAL&&e.claimable?`<button class="btn ghost claim" id="bClaim">已在 Polymarket 领取 ${usd(e.claimable)}</button>`:""):'<span class="m">没有持仓</span>';
- if(LOCAL&&$("bClaim"))$("bClaim").onclick=()=>post("/api/claimed").then(tick);
- const sk=m?Object.entries(m.skip||{}).sort((a,b)=>b[1]-a[1]):[];const mx=sk.length?sk[0][1]:1;
- $("whyS").style.display=sk.length?"":"none";
- $("why").innerHTML=sk.map(([k,v])=>`<span>${esc(k)}</span><span class="num">${v}</span><div class="b"><i style="width:${v/mx*100}%"></i></div>`).join("");
- const s=e.src||{};
- $("srcs").innerHTML=run?`链上：区块 <b>${s.chain_block??"–"}</b>，节点往返 <b>${s.rpc_ms??"–"}</b> ms<br>先发现的次数：链上 <b>${s.chain_first??0}</b>，API <b>${s.api_first??0}</b>`
-  +(LOCAL&&e.has_key?`<br>下单账户 <b>${esc(short(e.funder))}</b>，余额 <b>${e.balance==null?"–":usd(e.balance)}</b>`:""):'<span class="m">未运行</span>';
- $("foot").textContent=LOCAL?"关掉这个网页不影响跟单；关掉黑色命令窗口才会停止。数据在程序旁边的 data 文件夹。":
-  (e.updated?`更新于 ${new Date(e.updated*1000).toLocaleString()}。电脑上的程序每 ${e.every||120} 秒发布一次，这里每 30 秒刷新。`:"");
+ const run=online&&e.running,live=run&&e.mode==="live";
+ $("dot").className="dot "+(live?"live":run?"run":"");$("bar").className="bar"+(live?" live":"");
+ $("state").textContent=!online?"离线":live?"实盘":run?"纸面":"已停止";
+ $("who").textContent=e.cfg?e.cfg.leader.slice(0,6)+"…"+e.cfg.leader.slice(-4):"";
+ if(LOCAL){if(!inited){const c=e.cfg||DEF;F.forEach(k=>{if($(k)&&c[k]!=null)$(k).value=c[k]});setMode(e.running?e.mode:"paper");inited=true}
+  $("bStart").disabled=e.running;$("bStop").disabled=!e.running;$("mPaper").disabled=$("mLive").disabled=e.running}
+ const f=e.funnel||{all:0,his:0,copied:0,settled:0,wins:0},vals=[f.all,f.his,f.copied,f.settled,f.wins];VALS=vals;
+ vals.forEach((v,i)=>{const el=$("sv"+i);if(el)el.textContent=Number(v).toLocaleString()});
+ if(last&&!RM){const d=k=>Math.max(0,f[k]-(last[k]||0));
+  for(let i=0;i<Math.min(40,d("all"));i++)setTimeout(()=>spawn("g"),Math.random()*EVERY);
+  for(let i=0;i<d("his");i++)spawn("h");for(let i=0;i<d("copied");i++)setTimeout(()=>spawn("m"),400);
+  for(let i=0;i<d("wins")*24;i++)spawn("w")}
+ last=f;
+ const m=e.summary||{};const p=m.pnl??0;
+ $("pnl").textContent=(p>0?"+":p<0?"−":"")+"$"+Math.abs(p).toFixed(2);$("pnl").className="big n "+(p>0?"pos":p<0?"neg":"");
+ $("sub").innerHTML=`<span><b>${m.copied??0}</b>注</span><span>赢 <b>${m.wins??0}</b></span><span>每 $1 <b class="${(m.roi??0)>=0?'pos':'neg'}">${m.roi==null?"–":(m.roi>0?"+":"")+m.roi+"%"}</b></span>`+(e.claimable?`<span>待领取 <b>${usd(e.claimable)}</b></span>`:"")+(m.stopped?`<span class="neg">已暂停</span>`:"");
+ curve(e.curve);
+ $("tSpd").textContent=m.tot50==null?"–":m.tot50+"s";$("mSpd").style.width=m.tot50==null?"0":Math.max(4,100-Math.min(100,m.tot50/5*100))+"%";
+ $("tGap").innerHTML=m.slip_c==null?"–":`<span class="${m.slip_c>0?'neg':'pos'}">${m.slip_c>0?"+":""}${m.slip_c}¢</span>`;
+ $("tCash").textContent=m.cash==null?"–":usd(m.cash);$("kCash").textContent=m.open_n?`现金，在场 ${m.open_n} 注`:"现金";
+ const er=[];for(const[k,v]of Object.entries(e.err||{}))if(v)er.push(v);if(e.live_err)er.push(e.live_err);$("err").textContent=er.join("　");
+ const rows=(e.feed||[]).filter(r=>r.action!=="MERGED").slice(0,LOCAL?60:40);
+ if(rows.length)$("tape").innerHTML=rows.map(row).join("");
+ const s=e.src||{},pr=e.probes||{};
+ $("ft").innerHTML=[`实时数据 ${esc((s.rtds||"–").replace(/，收到.*$/,""))}`,`链上 ${s.ws==="已连接"?"已连接":esc(s.ws||"–")}`,pr.rtds_lead!=null?`实时数据比链上早 ${pr.rtds_lead}s`:"",e.fast?`选对 ${e.fast.ok}　选错 ${e.fast.bad}　误报 ${e.fast.false}`:"",LOCAL?"":(e.updated?"更新于 "+new Date(e.updated*1000).toLocaleTimeString():"")].filter(Boolean).map(x=>`<span>${x}</span>`).join("")+(LOCAL&&e.claimable?`<button class="btn ghost" id="bClaim" style="padding:2px 10px;font-size:12px">已领取 ${usd(e.claimable)}</button>`:"");
+ if($("bClaim"))$("bClaim").onclick=()=>post("/api/claimed").then(tick);
 }
 function row(r){
- if(r.action==="SKIP")return `<div class="row skip"><span class="t">${esc(r.time.slice(-8,-3))}</span><span>没跟：${esc(r.note)}${r.title?"（"+esc(tt(r.title))+"）":""}</span><span class="num">他 ${r.leader_px}</span></div>`;
- const t=`<span class="t">${esc(r.time.slice(-8,-3))}</span>`;
- if(r.action==="SETTLE"){const win=String(r.note).includes("赢");
-  return `<div class="row settle">${t}<div class="mk"><div>${win?"赢了":"输了"}　${esc(tt(r.title))}</div><small>${esc(r.outcome)} 结算</small></div><span class="pl ${cls(+r.pnl)}">${sgnUsd(+r.pnl)}</span></div>`}
- const my=r.my_px?+r.my_px:null,d=my!=null?(my-r.leader_px)*100:null;
- const lag=+r.lag||0,rtt=+r.rtt||0,tot=r.total!==""&&r.total!=null?+r.total:lag+rtt,cap=10;
- const gap=`<div class="gap"><div class="bar"><i class="l" style="width:${Math.min(lag,cap)/cap*100}%"></i><i class="r" style="width:${Math.min(rtt,Math.max(0,cap-lag))/cap*100}%"></i></div><span>${tot.toFixed(1)}s</span></div>`;
- return `<div class="row">${t}<div class="mk"><div>${r.action==="SELL"?"跟卖　":""}${esc(tt(r.title))||'<span class="m">市场名称读取中</span>'}</div><small>${esc(r.outcome)}${r.src?"　由"+(r.src==="chain"?"链上":"API")+"发现":""}</small></div>
- <div class="px"><span class="h">${(+r.leader_px).toFixed(3)}</span> → <span class="me">${my!=null?my.toFixed(3):"–"}</span>${d!=null?`<span class="d ${d>0.05?"neg":d<-0.05?"pos":"m"}">${d>0?"+":""}${d.toFixed(1)}¢</span>`:""}</div>
- ${gap}<span class="pl ${cls(+r.pnl)}">${r.pnl?sgnUsd(+r.pnl):r.usd?`<span class="m" style="font-weight:500">${r.action==="SELL"?"收":"投"} ${usd(Math.abs(+r.usd))}</span>`:""}</span></div>`;
-}
-let DEF={};
+ const t=`<span class="t">${esc(String(r.time).slice(-8,-3))}</span>`,o=String(r.outcome||"");
+ const pill=`<span class="pill ${/^up/i.test(o)?"up":/^down/i.test(o)?"down":""}">${o?esc(o):tt(r.title)||"–"}</span>`;
+ if(r.action==="SETTLE"){const w=+r.pnl>0;return `<div class="row">${t}${pill}<span class="${w?"pos":"neg"}" style="font-weight:600">${w?"赢了":"输了"}</span><span class="sec"></span><span class="res ${w?"pos":"neg"}">${sgn(+r.pnl)}</span></div>`}
+ const lp=+r.leader_px,my=r.my_px?+r.my_px:null,d=my!=null&&lp?(my-lp)*100:null;
+ const px=`<span class="px"><span class="h">${lp?(lp*100).toFixed(1)+"¢":"?"}</span> → <span class="m">${my!=null?(my*100).toFixed(1)+"¢":"–"}</span>${d!=null?`<span class="d ${d>0.05?"neg":d<-0.05?"pos":"mute"}">${d>0?"+":""}${d.toFixed(1)}</span>`:""}</span>`;
+ const sec=r.total!==""&&r.total!=null?(+r.total).toFixed(1)+"s":(r.lag!==""&&r.lag!=null?(+r.lag+(+r.rtt||0)).toFixed(1)+"s":"");
+ if(r.action==="SKIP"){const why=String(r.note||"").replace(/^极速：|^极速未成交：|^未成交：/,"").split(/[（(：]/)[0];
+  return `<div class="row skip">${t}${pill}<span class="px"><span class="h">${lp?(lp*100).toFixed(1)+"¢":""}</span> <span class="mute">没跟：${esc(why)}</span></span><span class="sec">${sec}</span><span class="res mute">—</span></div>`}
+ return `<div class="row">${t}${pill}${px}<span class="sec">${sec}</span><span class="res mute">${r.usd?usd(Math.abs(+r.usd)):""}</span></div>`}
+/* ---------- 控制 ---------- */
+function setMode(m){mode=m;$("mPaper").className=m==="paper"?"on":"";$("mLive").className=m==="live"?"on live":"";$("livebar").style.display=m==="live"?"block":"none"}
 async function post(u,b){const r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b||{})});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
-async function tick(){
- try{
-  if(LOCAL){const j=await (await fetch("/api/state")).json();DEF=j.defaults;render(j.e)}
-  else{render(await (await fetch(SRC+"?t="+Date.now(),{cache:"no-store"})).json())}
- }catch(x){$("state").textContent=LOCAL?"连不上程序：黑色命令窗口可能已关闭":"还没有数据";$("dot").className="dot";$("stripe").className="stripe off"}
-}
-if(LOCAL){
- $("ctl").hidden=false;$("setWrap").hidden=false;
- $("mPaper").onclick=()=>setMode("paper");$("mLive").onclick=()=>setMode("live");
- $("bStart").onclick=async()=>{$("msg").textContent="";const cfg={};F.forEach(k=>cfg[k]=$(k).value);
-  try{await post("/api/start",{cfg,mode,confirm:$("confirm").value.trim(),reset:$("reset").checked});$("reset").checked=false;$("confirm").value="";$("set").open=false;tick()}catch(x){$("msg").textContent=x.message}};
- $("bStop").onclick=async()=>{try{await post("/api/stop")}catch(x){$("msg").textContent=x.message}tick()};
-}
-tick();setInterval(tick,EVERY);
+async function start(){$("msg").textContent="";const cfg={};F.forEach(k=>{if($(k))cfg[k]=$(k).value});
+ try{await post("/api/start",{cfg,mode,confirm:$("confirm").value.trim(),reset:$("reset").checked});$("reset").checked=false;$("confirm").value="";$("sheet").hidden=true;tick()}
+ catch(x){$("msg").textContent=x.message;$("sheet").hidden=false}}
+async function tick(){try{if(LOCAL){const j=await (await fetch("/api/state")).json();DEF=j.defaults;render(j.e)}else render(await (await fetch(SRC+"?t="+Date.now(),{cache:"no-store"})).json())}
+ catch(x){$("state").textContent=LOCAL?"程序没开":"还没有数据";$("dot").className="dot"}}
+if(LOCAL){$("ctl").hidden=false;$("mPaper").onclick=()=>setMode("paper");$("mLive").onclick=()=>{setMode("live");$("sheet").hidden=false};
+ $("bStart").onclick=start;$("bStop").onclick=async()=>{try{await post("/api/stop")}catch(x){}tick()};
+ $("bGear").onclick=()=>{$("sheet").hidden=false};$("bClose").onclick=()=>{$("sheet").hidden=true};
+ $("bApply").onclick=async()=>{try{await post("/api/stop")}catch(x){}setTimeout(start,600)};}
+size();step();tick();setInterval(tick,EVERY);
 </script></body></html>
